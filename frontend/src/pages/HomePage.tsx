@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { ArrowDownUp, ClipboardList, Plus, Settings2 } from 'lucide-react';
+import { ArrowDownUp, Plus, Settings2 } from 'lucide-react';
 import { useState } from 'react';
 import { fetchWorkLogs } from '@/api/workLogs';
 import { fetchWorkTypes } from '@/api/workTypes';
@@ -69,38 +69,31 @@ export function HomePage() {
 
   return (
     <div className="mx-auto min-h-svh max-w-6xl px-4 py-8 sm:px-6">
-      <header className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-accent px-3 py-1 text-sm font-medium text-accent-foreground">
-            <ClipboardList className="h-4 w-4" />
-            Журнал работ на объекте
-          </div>
-          <h1 className="text-3xl font-semibold tracking-tight text-foreground">
-            Журнал работ
-          </h1>
-          <p className="mt-1 max-w-2xl text-muted-foreground">
-            Учёт выполненных работ на строительном объекте по дням.
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Button variant="outline" onClick={() => setWorkTypesDialogOpen(true)}>
-            <Settings2 className="h-4 w-4" />
-            Виды работ
-          </Button>
-          <Button onClick={openCreateDialog}>
-            <Plus className="h-4 w-4" />
-            Новая запись
-          </Button>
-        </div>
+      <header className="mb-12">
+        <h1 className="w-full whitespace-nowrap text-center text-3xl font-semibold tracking-tight text-foreground sm:text-4xl lg:text-4xl">
+          Учёт выполненных работ на строительном объекте по дням
+        </h1>
       </header>
 
       <Card className="mb-6">
-        <CardHeader className="pb-4">
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <ArrowDownUp className="h-4 w-4" />
-            Фильтры
-          </CardTitle>
-          <CardDescription>Фильтрация и сортировка записей по дате выполнения.</CardDescription>
+        <CardHeader className="flex flex-row items-start justify-between gap-4 space-y-0 pb-4">
+          <div className="space-y-1.5">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <ArrowDownUp className="h-4 w-4" />
+              Фильтры
+            </CardTitle>
+            <CardDescription>Фильтрация и сортировка записей по дате выполнения.</CardDescription>
+          </div>
+          <div className="flex shrink-0 flex-wrap justify-end gap-2">
+            <Button variant="outline" onClick={() => setWorkTypesDialogOpen(true)}>
+              <Settings2 className="h-4 w-4" />
+              Виды работ
+            </Button>
+            <Button onClick={openCreateDialog}>
+              <Plus className="h-4 w-4" />
+              Новая запись
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-4">
