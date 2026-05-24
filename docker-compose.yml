@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   postgres:
     image: postgres:16
@@ -13,6 +11,11 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d work_log_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   backend:
     build: ./backend
@@ -25,7 +28,8 @@ services:
     ports:
       - "5000:5000"
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
 
   frontend:
     build: ./frontend
