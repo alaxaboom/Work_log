@@ -2,11 +2,14 @@
 
 Веб-приложение для учёта выполненных работ на строительной площадке: записи журнала, справочник видов работ, фильтрация по дате.
 
+
 | Слой | Технологии |
 |------|------------|
 | Frontend | React, TypeScript, Vite, TanStack Table/Query, shadcn/ui, Tailwind CSS, Zod |
 | Backend | NestJS, TypeScript, Prisma ORM |
 | БД | PostgreSQL 16 |
+
+!!!Я мог что то упустить в инструкции (вроде не должен был)
 
 ## Запуск для разработки (локально)
 чтобы запустить понадобятся
@@ -78,7 +81,7 @@ cd Work_log
 | Переменная | Где | Назначение |
 |------------|-----|------------|
 | `POSTGRES_PASSWORD` | postgres | Пароль БД |
-| `DATABASE_URL` | backend | Строка подключения к PostgreSQL |
+| `DATABASE_URL` | backend | Строка подключения к PostgreSQL. Два раза нужно написать|
 | `CORS_ORIGIN` | backend | айпи своего сервера |
 
 Команда для билда и запуска приложения.
@@ -90,15 +93,6 @@ docker compose up -d --build
 После сборки:
 
 - **Приложение будет на :** `http://айпи сервера`
-
-
-Backend при старте автоматически применяет миграции (`prisma migrate deploy`).
-
-!!!В Docker seed сам не запускается — пропиши:
-
-```powershell
-docker exec work_log_backend npx prisma db seed
-```
 
 ## Начальные данные
 
