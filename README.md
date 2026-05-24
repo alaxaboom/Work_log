@@ -57,6 +57,20 @@ npm run dev
 
 
 ## Запуск через Docker (сервер / прод)
+
+сначала нужно убедится что на сервере скачан docker и docker compose 
+
+```powershell
+docker --version
+docker compose version
+```
+потом клонировать репозиторий 
+
+```powershell
+git clone https://github.com/alaxaboom/Work_log.git
+cd Work_log
+```
+
 ### Переменные для сервера
 
 Отредактируй `docker-compose.yml` перед билдом:
@@ -65,7 +79,7 @@ npm run dev
 |------------|-----|------------|
 | `POSTGRES_PASSWORD` | postgres | Пароль БД |
 | `DATABASE_URL` | backend | Строка подключения к PostgreSQL |
-| `CORS_ORIGIN` | backend | URL фронтенда, например `http://your-server-ip` |
+| `CORS_ORIGIN` | backend | айпи своего сервера |
 
 Команда для билда и запуска приложения.
 
