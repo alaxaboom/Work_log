@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { deleteWorkLog } from '@/api/workLogs';
+import { removeWorkLogFromCache } from '@/lib/queryCache';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,8 +28,8 @@ export function WorkLogsTable({ logs, isLoading, onEdit }: WorkLogsTableProps) {
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteWorkLog(id),
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['work-logs'] });
+    onSuccess: (_data, id) => {
+      removeWorkLogFromCache(queryClient, id);
       setDeleteTarget(null);
     },
   });
@@ -60,7 +61,14 @@ export function WorkLogsTable({ logs, isLoading, onEdit }: WorkLogsTableProps) {
         onDelete={(log) => setDeleteTarget(log)}
       />
 
-      <AlertDialog open={deleteTarget !== null} onOpenChange={() => setDeleteTarget(null)}>
+      <AlertDialog
+        open={deleteTarget !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setDeleteTarget(null);
+          }
+        }}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Удалить запись?</AlertDialogTitle>
@@ -74,9 +82,11 @@ export function WorkLogsTable({ logs, isLoading, onEdit }: WorkLogsTableProps) {
             <AlertDialogAction
               className="bg-destructive hover:bg-destructive/90"
               disabled={deleteMutation.isPending}
-              onClick={() => {
-                if (deleteTarget) {
-                  deleteMutation.mutate(deleteTarget.id);
+              onClick={(event) => {
+                event.preventDefault();
+                const id = deleteTarget?.id;
+                if (id) {
+                  deleteMutation.mutate(id);
                 }
               }}
             >

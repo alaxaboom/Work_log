@@ -23,6 +23,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { queryKeys, refreshWorkLogs, upsertWorkLogInCache } from '@/lib/queryCache';
 import { workLogSchema, type WorkLogFormValues } from '@/schemas';
 import type { WorkLog } from '@/types';
 
@@ -45,7 +46,7 @@ export function WorkLogDialog({ open, onOpenChange, entry }: WorkLogDialogProps)
   const isEditing = entry !== null;
 
   const workTypesQuery = useQuery({
-    queryKey: ['work-types'],
+    queryKey: queryKeys.workTypes.all,
     queryFn: () => fetchWorkTypes(),
     enabled: open,
   });
@@ -86,8 +87,13 @@ export function WorkLogDialog({ open, onOpenChange, entry }: WorkLogDialogProps)
       }
       return createWorkLog(payload);
     },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['work-logs'] });
+    onSuccess: async (saved) => {
+      if (isEditing) {
+        upsertWorkLogInCache(queryClient, saved);
+        void refreshWorkLogs(queryClient);
+      } else {
+        await refreshWorkLogs(queryClient);
+      }
       onOpenChange(false);
     },
   });

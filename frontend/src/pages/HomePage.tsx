@@ -2,6 +2,8 @@ import { useQuery } from '@tanstack/react-query';
 import { ArrowDownUp, ClipboardList, Plus, Settings2 } from 'lucide-react';
 import { useState } from 'react';
 import { fetchWorkLogs } from '@/api/workLogs';
+import { fetchWorkTypes } from '@/api/workTypes';
+import { queryKeys } from '@/lib/queryCache';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -32,8 +34,13 @@ export function HomePage() {
   const [editingLog, setEditingLog] = useState<WorkLog | null>(null);
 
   const workLogsQuery = useQuery({
-    queryKey: ['work-logs', filters],
+    queryKey: queryKeys.workLogs.list(filters),
     queryFn: () => fetchWorkLogs(filters),
+  });
+
+  useQuery({
+    queryKey: queryKeys.workTypes.all,
+    queryFn: () => fetchWorkTypes(),
   });
 
   const applyFilters = () => {

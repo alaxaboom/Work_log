@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Pencil, Trash2 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type MouseEvent } from 'react';
 import { useForm } from 'react-hook-form';
 import {
   createWorkType,
@@ -45,6 +45,13 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { CONSTRUCTION_UNITS } from '@/constants/units';
+import {
+  queryKeys,
+  refreshWorkLogs,
+  removeWorkTypeFromCache,
+  syncWorkTypeInLogsCache,
+  upsertWorkTypeInCache,
+} from '@/lib/queryCache';
 import { workTypeSchema, type WorkTypeFormValues } from '@/schemas';
 import type { WorkType } from '@/types';
 
@@ -77,7 +84,7 @@ export function WorkTypesDialog({ open, onOpenChange }: WorkTypesDialogProps) {
   const [cascadeTarget, setCascadeTarget] = useState<WorkType | null>(null);
 
   const workTypesQuery = useQuery({
-    queryKey: ['work-types'],
+    queryKey: queryKeys.workTypes.all,
     queryFn: () => fetchWorkTypes(),
     enabled: open,
   });
@@ -121,8 +128,9 @@ export function WorkTypesDialog({ open, onOpenChange }: WorkTypesDialogProps) {
       }
       return createWorkType(payload);
     },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['work-types'] });
+    onSuccess: (saved) => {
+      upsertWorkTypeInCache(queryClient, saved);
+      syncWorkTypeInLogsCache(queryClient, saved);
       setEditingType(null);
       form.reset(emptyFormValues);
     },
@@ -130,9 +138,9 @@ export function WorkTypesDialog({ open, onOpenChange }: WorkTypesDialogProps) {
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteWorkType(id),
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['work-types'] });
-      await queryClient.invalidateQueries({ queryKey: ['work-logs'] });
+    onSuccess: async (_data, id) => {
+      removeWorkTypeFromCache(queryClient, id);
+      await refreshWorkLogs(queryClient);
       setDeleteTarget(null);
       setCascadeTarget(null);
     },
@@ -142,7 +150,8 @@ export function WorkTypesDialog({ open, onOpenChange }: WorkTypesDialogProps) {
     saveMutation.mutate(values);
   });
 
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = (event: MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
     if (!deleteTarget) {
       return;
     }
@@ -279,7 +288,14 @@ export function WorkTypesDialog({ open, onOpenChange }: WorkTypesDialogProps) {
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={deleteTarget !== null} onOpenChange={() => setDeleteTarget(null)}>
+      <AlertDialog
+        open={deleteTarget !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setDeleteTarget(null);
+          }
+        }}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Удалить вид работ?</AlertDialogTitle>
@@ -300,7 +316,14 @@ export function WorkTypesDialog({ open, onOpenChange }: WorkTypesDialogProps) {
         </AlertDialogContent>
       </AlertDialog>
 
-      <AlertDialog open={cascadeTarget !== null} onOpenChange={() => setCascadeTarget(null)}>
+      <AlertDialog
+        open={cascadeTarget !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setCascadeTarget(null);
+          }
+        }}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Удалить связанные записи?</AlertDialogTitle>
@@ -316,9 +339,11 @@ export function WorkTypesDialog({ open, onOpenChange }: WorkTypesDialogProps) {
             <AlertDialogAction
               className="bg-destructive hover:bg-destructive/90"
               disabled={deleteMutation.isPending}
-              onClick={() => {
-                if (cascadeTarget) {
-                  deleteMutation.mutate(cascadeTarget.id);
+              onClick={(event) => {
+                event.preventDefault();
+                const id = cascadeTarget?.id;
+                if (id) {
+                  deleteMutation.mutate(id);
                 }
               }}
             >
