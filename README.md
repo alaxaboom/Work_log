@@ -51,7 +51,6 @@ npm run start:dev
 ```powershell
 cd frontend
 copy .env.example .env
-//
 npm install
 npm run dev
 ```
